@@ -1,455 +1,223 @@
-![Титульник](https://github.com/Roman784/test/blob/main/TLab5.jpg)
+![Титульник](https://github.com/Roman784/test/blob/main/TLab7.png)
 
-**Цель:** получить практические навыки в создании программ,
-содержащих статические методы, и изучить поведение членов с
-модификатором static.
+**Цель:** получить практические навыки в создании свойств структур и классов, вырабатываются навыки их определения, изучаются примеры возможного их
+применения и использования.
 
 **Постановка задачи**\
-Изучить соответствующий материал. В данной работе необходимо
-изучить определение статических методов, их правильное применение,
-проверить на практике различие в поведении статических и не статических
-сущностей программы.
+Изучить соответствующий материал. В данной работе изучается механизм наследования объектно-ориентированных программ, способы его применения и особенности
+использования.
+Создание программы с наследованием элементов. Изучение реализации взаимодействия между базовыми элементами и их наследниками. Изучение преобразование типов в наследовании.
 
 
 ```C#
-using DataAccess;
 using System;
 
-namespace Main
+public class Program
 {
-    public static class PersonsData
+    public class Enemy
     {
-        private static List<Person> persons = new List<Person>();
+        public string Name { get; set; } = "";
 
-        public static void AddPerson(Person person)
-        {
-            persons.Add(person);
+        private int health = 0;
+        public int Health 
+        { 
+            get => health; 
+            set
+            {
+                if (value < 0) 
+                    throw new ArgumentOutOfRangeException("Значение не может быть отрицательным");
+                health = value;
+            }
         }
 
-        public static Person GetPerson(int id)
+        private int damage = 0;
+        public int Damage
         {
-            foreach (Person person in persons)
+            get => damage;
+            set
             {
-                if (person.Id == id) return person;
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("Значение не может быть отрицательным");
+                damage = value;
             }
+        }
 
-            Console.WriteLine("Человек не найден");
-            return null;
+        public virtual string ToString()
+        {
+            return
+                $"Имя: {Name}\n" +
+                $"Здоровье: {Health}\n" +
+                $"Урон: {Damage}\n";
         }
     }
 
-    public class Person
+    public class Spider : Enemy
     {
-        private static int idCounter;
-        public int Id { get; private set; }
-
-        private string firstName = "";
-        private string surname = "";
-        private int birthDate;
-
-        public string FirstName
+        private float moveSpeed = 0;
+        public float MoveSpeed
         {
-            get { return firstName; }
-            set { firstName = value; }
+            get => moveSpeed;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("Значение не может быть отрицательным");
+                moveSpeed = value;
+            }
         }
 
-        public string Surname
+        public override string ToString()
         {
-            get { return surname; }
-            set { surname = value; }
+            return
+                base.ToString() +
+                $"Скорость передвижения: {MoveSpeed}\n";
         }
 
-        public int BirthDate
+        public void Move()
         {
-            get { return birthDate; }
-            set { birthDate = Math.Clamp(value, 1900, 2023); }
-        }
-
-        public int Age { get => 2023 - BirthDate; }
-
-        public Person(string firstName, string surname, int birthDate)
-        {
-            Id = idCounter;
-            idCounter += 1;
-
-            FirstName = firstName;
-            Surname = surname;
-            BirthDate = birthDate;
-
-            PersonsData.AddPerson(this);
-        }
-
-        public void Show()
-        {
-            Console.WriteLine($"ID: {Id}");
-            Console.WriteLine($"Имя: {FirstName}");
-            Console.WriteLine($"Фамилия: {Surname}");
-            Console.WriteLine($"Возраст: {Age}");
-            Console.WriteLine($"Дата рождения: {BirthDate}\n");
+            Console.WriteLine($"{Name} переместился со скоростью {MoveSpeed}");
         }
     }
 
-    public class Student : Person
+    public class Tower : Enemy
     {
-        private int gradebookNumber = 0;
-        private float gradePointAverage = 0f;
-
-        public int GradebookNumber
+        private float shotsCooldown = 0;
+        public float ShotsCooldown
         {
-            get { return gradebookNumber; }
-            set { gradebookNumber = Math.Clamp(value, 0, value); }
+            get => shotsCooldown;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("Значение не может быть отрицательным");
+                shotsCooldown = value;
+            }
         }
 
-        public float GradePointAverage
+        public override string ToString()
         {
-            get { return gradePointAverage; }
-            set { gradePointAverage = Math.Clamp(value, 0f, 100f); }
+            return
+                base.ToString() +
+                $"Задержка между выстрелами: {ShotsCooldown}\n";
         }
 
-        public Student(string firstName, string surname, int birthDate, float gradePointAverage) : base(firstName, surname, birthDate)
+        public void Shoot()
         {
-            GradePointAverage = gradePointAverage;
-        }
-
-        public new void Show()
-        {
-            Console.WriteLine($"Имя: {FirstName}");
-            Console.WriteLine($"Фамилия: {Surname}");
-            Console.WriteLine($"Возраст: {Age}");
-            Console.WriteLine($"Дата рождения: {BirthDate}");
-            Console.WriteLine($"Средний балл: {GradePointAverage}");
-            Console.WriteLine($"Номер зачётки: {GradebookNumber}\n");
+            Console.WriteLine($"{Name} выстрелила");
         }
     }
 
-    public class University
+    public class EnemiesPool
     {
-        private List<Student> students = new List<Student>();
+        private List<Spider> spiders = new List<Spider>();
+        private List<Tower> towers = new List<Tower>();
 
-        private int gradebookNumberCounter = 0;
-
-        public List<Student> GetStudents() => new List<Student>(students);
-        public void SetStudents(List<Student> newStudents)
+        public void Add(Enemy enemy)
         {
-            students = new List<Student>(newStudents);
+            if (enemy is Spider)
+                spiders.Add((Spider)enemy);
 
-            // Поиск последнего(наибольшего) номера в зачётке.
-            foreach (Student student in students)
-            {
-                if (student.GradebookNumber >= gradebookNumberCounter)
-                    gradebookNumberCounter = student.GradebookNumber + 1;
-            }
+            if (enemy is Tower)
+                towers.Add((Tower)enemy);
         }
 
-        public void AddStudent(Student newStudent)
+        public int GetSpidersCount() => spiders.Count;
+        public int GetTowersCount() => towers.Count;
+
+        public string GetStatistics()
         {
-            if (newStudent == null)
-                throw new NullReferenceException("Попытка добавить несуществующего студента");
-
-            newStudent.GradebookNumber = gradebookNumberCounter;
-            gradebookNumberCounter += 1;
-
-            students.Add(newStudent);
-        }
-
-        public void RemoveStudent(Student student)
-        {
-            if (student == null)
-                throw new NullReferenceException("Попытка удалить несуществующего студента");
-
-            students.Remove(student);
-        }
-
-        public Student GetStudentByName(string firstName, string surname)
-        {
-            foreach (Student student in students)
-            {
-                if (student.FirstName == firstName && student.Surname == surname)
-                    return student;
-            }
-
-            Console.WriteLine("Студент не найден\n");
-            return null;
-        }
-
-        public Student GetStudentByGradebookNumber(int number)
-        {
-            foreach (Student student in students)
-            {
-                if (student.GradebookNumber == number)
-                    return student;
-            }
-
-            Console.WriteLine("Студент не найден\n");
-            return null;
-        }
-
-        public void ShowAllStudents()
-        {
-            foreach (Student student in students)
-            {
-                student.Show();
-            }
+            return
+                $"Количество пауков: {GetSpidersCount()}\n" +
+                $"Количество башен: {GetTowersCount()}\n";
         }
     }
 
-    public class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            University university = new University();
+        EnemiesPool pool = new EnemiesPool();
 
-            Student student1 = new Student("1", "1", 9999, -1f);
-            Student student2 = new Student("2", "2", -1, 200f);
-            Student student3 = new Student("3", "3", 1, 1f);
+        Enemy enemy1 = new Enemy();
+        Enemy enemy2 = new Enemy();
 
-            university.AddStudent(student1);
-            university.AddStudent(student2);
-            university.AddStudent(student3);
+        Spider spider1 = new Spider() { Name = "паук1", Health = 1, Damage = 1, MoveSpeed = 1 };
+        Spider spider2 = new Spider() { Name = "паук2", Health = 2, Damage = 2, MoveSpeed = 2 };
 
-            university.ShowAllStudents();
+        Tower tower1 = new Tower() { Name = "башня1", Health = 1, Damage = 1, ShotsCooldown = 1 };
+        Tower tower2 = new Tower() { Name = "башня2", Health = 2, Damage = 2, ShotsCooldown = 2 };
 
-            Console.WriteLine("---------------- Удаление студента ----------------\n");
+        Console.WriteLine(enemy1.ToString());
+        Console.WriteLine(enemy2.ToString());
 
-            university.RemoveStudent(student2);
+        Console.WriteLine(spider1.ToString());
+        Console.WriteLine(spider2.ToString());
 
-            university.ShowAllStudents();
+        Console.WriteLine(tower1.ToString());
+        Console.WriteLine(tower2.ToString());
 
-            Console.WriteLine("----------- Получение студента по имени -----------\n");
+        spider1.Move();
+        spider2.Move();
 
-            Student student = university.GetStudentByName("3", "3");
-            student?.Show();
+        tower1.Shoot();
+        tower2.Shoot();
 
-            student = university.GetStudentByName("3", "2"); // Несуществующий студент.
-            student?.Show();
+        Console.WriteLine();
 
-            Console.WriteLine("------ Сохранение и загрузка списка студентов -----\n");
+        pool.Add(spider1);
+        pool.Add(spider2);
+        pool.Add(tower1);
+        pool.Add(tower2);
 
-            IDataSerializer serializer = new JSONSerializer(); // Способ, которым будут сериализоваться данные.
-            Repository repository = new StudentsRepository(serializer); // StudentsRepository ограничивает работу, допускается только List<Student>.
-
-            repository.Save(university.GetStudents());
-            List<Student> students = (List<Student>)repository.Load();
-
-            University university2 = new University();
-            university2.SetStudents(students);
-            university2.ShowAllStudents();
-
-            Console.WriteLine("----------------- Список людей -----------------\n");
-
-            PersonsData.GetPerson(0)?.Show();
-            PersonsData.GetPerson(1)?.Show();
-            PersonsData.GetPerson(2)?.Show();
-        }
+        Console.WriteLine(pool.GetStatistics());
     }
 }
 ```
+
+Базовый класс Enemy имеет 3 свойства: Name, Health и Damage. 
+У дочернего Spider добавляется функционал для передвижения - свойство MoveSpeed и метод Move. 
+Противник типа Tower, в свою очередь, двигаться не способен, вместо этого он стреляет с некой задержкой - свойство ShotsCooldown и метод Shoot.
+
+Для хранения всех врагов реализован класс EnemiesPool.
+
+---
+
 ```C#
-using Main;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+Enemy enemy1 = new Enemy();
+Enemy enemy2 = new Enemy();
 
-namespace DataAccess
-{
-    // Отвечает за способы сохранения/чтения данных, будь это JSON, XML и тд. 
-    public interface IDataSerializer
-    {
-        public void Save(Object data, string path);
-        public Object Load<T>(string path);
-    }
+Spider spider1 = new Spider() { Name = "паук1", Health = 1, Damage = 1, MoveSpeed = 1 };
+Spider spider2 = new Spider() { Name = "паук2", Health = 2, Damage = 2, MoveSpeed = 2 };
 
-    public class JSONSerializer : IDataSerializer
-    {
-        private string fileExtension = ".json";
-        private string fullPath = ""; // Путь к файлу с учётом расширения.
+Tower tower1 = new Tower() { Name = "башня1", Health = 1, Damage = 1, ShotsCooldown = 1 };
+Tower tower2 = new Tower() { Name = "башня2", Health = 2, Damage = 2, ShotsCooldown = 2 };
 
-        private JsonSerializerOptions options = new()
-        {
-            ReferenceHandler = ReferenceHandler.IgnoreCycles,
-            WriteIndented = true
-        };
+Console.WriteLine(enemy1.ToString());
+Console.WriteLine(enemy2.ToString());
 
-        public void Save(Object data, string path)
-        {
-            try
-            {
-                string json = JsonSerializer.Serialize(data, options);
+Console.WriteLine(spider1.ToString());
+Console.WriteLine(spider2.ToString());
 
-                fullPath = path + fileExtension; 
-                StreamWriter file = new StreamWriter(fullPath, false);
-                file.Write(json);
-                file.Close();
-
-                Console.WriteLine("Файл сохранён через JSON");
-                Console.WriteLine($"Путь к файлу {fullPath}\n");
-            }
-            catch { Console.WriteLine("Ошибка сохранения"); }
-        }
-
-        public Object Load<T>(string path)
-        {
-            fullPath = path + fileExtension;
-
-            if (!File.Exists(fullPath))
-            {
-                Console.WriteLine("Файл для загрузки не найден");
-                return null;
-            }
-
-            try
-            {
-                string json = File.ReadAllText(fullPath);
-                return JsonSerializer.Deserialize<T>(json);
-            }
-            catch
-            {
-                Console.WriteLine("Ошибка загрузки");
-                return null;
-            }
-        }
-    }
-
-    public class Repository
-    {
-        protected IDataSerializer serializer = new JSONSerializer();
-        protected string savePath = "";
-
-        public Repository(string saveFileName, IDataSerializer serializer)
-        {
-            savePath = Path.Combine(Environment.CurrentDirectory, saveFileName);
-            this.serializer = serializer;
-        }
-
-        public void Save(Object data) => serializer.Save(data, savePath);
-        public virtual Object Load() => serializer.Load<Object>(savePath);
-    }
-
-    public class StudentsRepository : Repository
-    {
-        private static string saveFileName = "students";
-
-        public StudentsRepository(IDataSerializer serializer) : base(saveFileName, serializer) { }
-
-        public override List<Student> Load()
-        {
-            Object data = serializer.Load<List<Student>>(savePath);
-
-            if (data == null) return new List<Student>();
-            return (List<Student>)data;
-        }
-    }
-}
+Console.WriteLine(tower1.ToString());
+Console.WriteLine(tower2.ToString());
 ```
+![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2026.png)
 
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2012.png)
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2013.png)
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2014.png)
+---
 
-В класс человека были перенесены некоторые поля из студента: имя и дата рождения, а также был добавлен id и статический счётчик для него.
-Устанавливается id в конструкторе, здесь же экземпляр человека добавляется в общий список людей.
 ```C#
-private static int idCounter;
-public int Id { get; private set; }
+spider1.Move();
+spider2.Move();
 
-public Person(string firstName, string surname, int birthDate)
-{
-    Id = idCounter;
-    idCounter += 1;
-
-    FirstName = firstName;
-    Surname = surname;
-    BirthDate = birthDate;
-
-    PersonsData.AddPerson(this);
-}
+tower1.Shoot();
+tower2.Shoot();
 ```
+![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2027.png)
 
-Статический класс PersonData содержит список людей, методы для их добавления, и поиска конкретного по id.
+---
+
 ```C#
-public static class PersonsData
-{
-    private static List<Person> persons = new List<Person>();
+pool.Add(spider1);
+pool.Add(spider2);
+pool.Add(tower1);
+pool.Add(tower2);
 
-    public static void AddPerson(Person person)
-    {
-        persons.Add(person);
-    }
-
-    public static Person GetPerson(int id)
-    {
-        foreach (Person person in persons)
-        {
-            if (person.Id == id) return person;
-        }
-
-        Console.WriteLine("Человек не найден");
-        return null;
-    }
-}
+Console.WriteLine(pool.GetStatistics());
 ```
-
-Теперь при добавлении студента в университет, ему присваивается уникальный, в данном экземпляре вуза, номер зачётной книжки.
-Также, устанавливая новый список студентов, счётчик для номеров зачёток ориентрируется на максимальный номер.
-```C#
-private int gradebookNumberCounter = 0;
-
-public void AddStudent(Student newStudent)
-{
-    if (newStudent == null)
-        throw new NullReferenceException("Попытка добавить несуществующего студента");
-
-    newStudent.GradebookNumber = gradebookNumberCounter;
-    gradebookNumberCounter += 1;
-
-    students.Add(newStudent);
-}
-
-public void SetStudents(List<Student> newStudents)
-{
-    students = new List<Student>(newStudents);
-
-    // Поиск последнего(наибольшего) номера в зачётке.
-    foreach (Student student in students)
-    {
-        if (student.GradebookNumber >= gradebookNumberCounter)
-            gradebookNumberCounter = student.GradebookNumber + 1;
-    }
-}
-```
-
-Пример демонстрации работы дополнился выводом информации о людях по их id. Можно было бы создать метод с циклом в PersonData, но я решил выводить по одному.
-```C#
-Console.WriteLine("----------------- Список людей -----------------\n");
-PersonsData.GetPerson(0)?.Show();
-PersonsData.GetPerson(1)?.Show();
-PersonsData.GetPerson(2)?.Show();
-```
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2016.png)
-
-Методы Show у Person и Student.
-```C#
-// У Person
-public void Show()
-{
-    Console.WriteLine($"ID: {Id}");
-    Console.WriteLine($"Имя: {FirstName}");
-    Console.WriteLine($"Фамилия: {Surname}");
-    Console.WriteLine($"Возраст: {Age}");
-    Console.WriteLine($"Дата рождения: {BirthDate}\n");
-}
-
-// У Student
-public new void Show()
-{
-    Console.WriteLine($"Имя: {FirstName}");
-    Console.WriteLine($"Фамилия: {Surname}");
-    Console.WriteLine($"Возраст: {Age}");
-    Console.WriteLine($"Дата рождения: {BirthDate}");
-    Console.WriteLine($"Средний балл: {GradePointAverage}");
-    Console.WriteLine($"Номер зачётки: {GradebookNumber}\n");
-}
-```
-
-Код и логика сохранения не изменились.
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2015.png)
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2017.png)
+![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2028.png)
