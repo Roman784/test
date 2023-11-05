@@ -1,12 +1,12 @@
-![Титульник](https://github.com/Roman784/test/blob/main/TLab7.png)
+![Титульник](https://github.com/Roman784/test/blob/main/TLab8.png)
 
 **Цель:** получить практические навыки в создании свойств структур и классов, вырабатываются навыки их определения, изучаются примеры возможного их
 применения и использования.
 
 **Постановка задачи**\
-Изучить соответствующий материал. В данной работе изучается механизм наследования объектно-ориентированных программ, способы его применения и особенности
-использования.
-Создание программы с наследованием элементов. Изучение реализации взаимодействия между базовыми элементами и их наследниками. Изучение преобразование типов в наследовании.
+Изучить соответствующий материал. В данной работе изучается механизм
+применения абстрактных классов, вырабатываются навыки использования таких
+конструкций. Нарабатывается способы написания программ с использованием методики SOLID.
 
 
 ```C#
@@ -14,210 +14,119 @@ using System;
 
 public class Program
 {
-    public class Enemy
+    public abstract class Device
     {
-        public string Name { get; set; } = "";
+        public abstract string Type { get; }
 
-        private int health = 0;
-        public int Health 
-        { 
-            get => health; 
-            set
-            {
-                if (value < 0) 
-                    throw new ArgumentOutOfRangeException("Значение не может быть отрицательным");
-                health = value;
-            }
+        public abstract void TurnOn();
+        public abstract void TurnOff();
+    }
+
+    public class Computer : Device
+    {
+        public override string Type { get => "Компьютер"; }
+        public string ScreenResolution { get; private set; } = "";
+
+        public Computer(string screenResolution)
+        {
+            ScreenResolution = screenResolution;
+        } 
+
+        public override void TurnOn()
+        {
+            Console.WriteLine("Компьютер включен");
         }
 
-        private int damage = 0;
-        public int Damage
+        public override void TurnOff()
         {
-            get => damage;
-            set
-            {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException("Значение не может быть отрицательным");
-                damage = value;
-            }
+            Console.WriteLine("Компьютер выключен");
         }
 
-        public virtual string ToString()
+        public void OpenProgram(string program)
         {
-            return
-                $"Имя: {Name}\n" +
-                $"Здоровье: {Health}\n" +
-                $"Урон: {Damage}\n";
+            Console.WriteLine($"Открытие приложения {program}");
         }
     }
 
-    public class Spider : Enemy
+    public class Printer : Device
     {
-        private float moveSpeed = 0;
-        public float MoveSpeed
+        public override string Type { get => "Принтер"; }
+        public int CartridgeCount { get; private set; }
+
+        public Printer(int cartridgeCount)
         {
-            get => moveSpeed;
-            set
-            {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException("Значение не может быть отрицательным");
-                moveSpeed = value;
-            }
+            CartridgeCount = cartridgeCount;
         }
 
-        public override string ToString()
+        public override void TurnOn()
         {
-            return
-                base.ToString() +
-                $"Скорость передвижения: {MoveSpeed}\n";
+            Console.WriteLine("Принтер включен");
         }
 
-        public void Move()
+        public override void TurnOff()
         {
-            Console.WriteLine($"{Name} переместился со скоростью {MoveSpeed}");
+            Console.WriteLine("Принтер выключен");
+        }
+
+        public void Print(string document)
+        {
+            Console.WriteLine($"Печать документа {document}");
         }
     }
 
-    public class Tower : Enemy
+    public class VacuumCleaner : Device
     {
-        private float shotsCooldown = 0;
-        public float ShotsCooldown
+        public override string Type { get => "Пылесос"; }
+        public float Power { get; private set; }
+
+        public VacuumCleaner(float power)
         {
-            get => shotsCooldown;
-            set
-            {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException("Значение не может быть отрицательным");
-                shotsCooldown = value;
-            }
+            Power = power;
         }
 
-        public override string ToString()
+        public override void TurnOn()
         {
-            return
-                base.ToString() +
-                $"Задержка между выстрелами: {ShotsCooldown}\n";
+            Console.WriteLine("Пылесос включен");
         }
 
-        public void Shoot()
+        public override void TurnOff()
         {
-            Console.WriteLine($"{Name} выстрелила");
+            Console.WriteLine("Пылесос выключен");
+        }
+
+        public void StartСleaning()
+        {
+            Console.WriteLine($"Старт уборки");
         }
     }
 
-    public class EnemiesPool
+    public static void F(Device device)
     {
-        private List<Spider> spiders = new List<Spider>();
-        private List<Tower> towers = new List<Tower>();
+        Console.WriteLine($"Работа с {device.Type}");
+        device.TurnOn();
+        device.TurnOff();
 
-        public void Add(Enemy enemy)
-        {
-            if (enemy is Spider)
-                spiders.Add((Spider)enemy);
-
-            if (enemy is Tower)
-                towers.Add((Tower)enemy);
-        }
-
-        public int GetSpidersCount() => spiders.Count;
-        public int GetTowersCount() => towers.Count;
-
-        public string GetStatistics()
-        {
-            return
-                $"Количество пауков: {GetSpidersCount()}\n" +
-                $"Количество башен: {GetTowersCount()}\n";
-        }
+        Console.WriteLine();
     }
 
     static void Main(string[] args)
     {
-        EnemiesPool pool = new EnemiesPool();
+        Computer computer = new Computer("1920x1080");
+        Printer printer = new Printer(4);
+        VacuumCleaner vacuumCleaner = new VacuumCleaner(300);
 
-        Enemy enemy1 = new Enemy();
-        Enemy enemy2 = new Enemy();
+        F(computer);
+        F(printer);
+        F(vacuumCleaner);
 
-        Spider spider1 = new Spider() { Name = "паук1", Health = 1, Damage = 1, MoveSpeed = 1 };
-        Spider spider2 = new Spider() { Name = "паук2", Health = 2, Damage = 2, MoveSpeed = 2 };
-
-        Tower tower1 = new Tower() { Name = "башня1", Health = 1, Damage = 1, ShotsCooldown = 1 };
-        Tower tower2 = new Tower() { Name = "башня2", Health = 2, Damage = 2, ShotsCooldown = 2 };
-
-        Console.WriteLine(enemy1.ToString());
-        Console.WriteLine(enemy2.ToString());
-
-        Console.WriteLine(spider1.ToString());
-        Console.WriteLine(spider2.ToString());
-
-        Console.WriteLine(tower1.ToString());
-        Console.WriteLine(tower2.ToString());
-
-        spider1.Move();
-        spider2.Move();
-
-        tower1.Shoot();
-        tower2.Shoot();
-
-        Console.WriteLine();
-
-        pool.Add(spider1);
-        pool.Add(spider2);
-        pool.Add(tower1);
-        pool.Add(tower2);
-
-        Console.WriteLine(pool.GetStatistics());
+        computer.OpenProgram("Блокнот");
+        printer.Print("Курсовая.doc");
+        vacuumCleaner.StartСleaning();
     }
 }
 ```
 
-Базовый класс Enemy имеет 3 свойства: Name, Health и Damage. 
-У дочернего Spider добавляется функционал для передвижения - свойство MoveSpeed и метод Move. 
-Противник типа Tower, в свою очередь, двигаться не способен, вместо этого он стреляет с некой задержкой - свойство ShotsCooldown и метод Shoot.
+![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2032.png)
 
-Для хранения всех врагов реализован класс EnemiesPool.
-
----
-
-```C#
-Enemy enemy1 = new Enemy();
-Enemy enemy2 = new Enemy();
-
-Spider spider1 = new Spider() { Name = "паук1", Health = 1, Damage = 1, MoveSpeed = 1 };
-Spider spider2 = new Spider() { Name = "паук2", Health = 2, Damage = 2, MoveSpeed = 2 };
-
-Tower tower1 = new Tower() { Name = "башня1", Health = 1, Damage = 1, ShotsCooldown = 1 };
-Tower tower2 = new Tower() { Name = "башня2", Health = 2, Damage = 2, ShotsCooldown = 2 };
-
-Console.WriteLine(enemy1.ToString());
-Console.WriteLine(enemy2.ToString());
-
-Console.WriteLine(spider1.ToString());
-Console.WriteLine(spider2.ToString());
-
-Console.WriteLine(tower1.ToString());
-Console.WriteLine(tower2.ToString());
-```
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2026.png)
-
----
-
-```C#
-spider1.Move();
-spider2.Move();
-
-tower1.Shoot();
-tower2.Shoot();
-```
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2027.png)
-
----
-
-```C#
-pool.Add(spider1);
-pool.Add(spider2);
-pool.Add(tower1);
-pool.Add(tower2);
-
-Console.WriteLine(pool.GetStatistics());
-```
-![Скриншот](https://github.com/Roman784/test/blob/main/Screenshot_2028.png)
+Абстрактный класс Device определяет свойство с типом устройства, а также методы для его включения/выключения.
+Каждый из производных классов реализует их по своему, для демонстрации методы просто выводят сообщение в консоль.
